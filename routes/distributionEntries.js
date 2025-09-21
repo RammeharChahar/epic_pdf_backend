@@ -1,12 +1,12 @@
-// routes/distributionEntries.js
+// backend/routes/distributionEntries.js
 const express = require("express");
 const router = express.Router();
-const pool = require("../db"); // mysql2/promise pool
+const pool = require("../db"); // pg pool
 
 // ✅ Get entries from receive_entries that are NOT in distribution_entries
 router.get("/", async (req, res) => {
   try {
-    const [results] = await pool.query(
+    const { rows } = await pool.query(
       `
       SELECT r.*
       FROM receive_entries r
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
       ORDER BY r.month DESC, r.constituency, r.day;
       `
     );
-    res.json(results);
+    res.json(rows);
   } catch (err) {
     console.error("Error fetching distribution entries:", err);
     res.status(500).json({ error: "Failed to fetch distribution entries" });
@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
       `
       INSERT INTO distribution_entries 
       (constituency, month, day, form6_count, form8_count, total) 
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6)
       `,
       [constituency, month, day, form6_count, form8_count, total]
     );

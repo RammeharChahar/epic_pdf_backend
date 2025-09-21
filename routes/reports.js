@@ -1,7 +1,7 @@
 // routes/reports.js
 const express = require("express");
 const router = express.Router();
-const pool = require("../db");
+const pool = require("../db"); // pg pool
 
 // GET /api/reports?reportType=Receive&year=2025
 router.get("/", async (req, res) => {
@@ -18,24 +18,24 @@ router.get("/", async (req, res) => {
     // month stored as "YYYY-MM" → filter by LIKE
     const yearLike = `${year}-%`;
 
+    // PostgreSQL version:
     const sql = `
       SELECT
         id,
         constituency AS constituency_no,
         month AS month_raw,
-        MONTH(STR_TO_DATE(CONCAT(month, '-01'), '%Y-%m-%d')) AS month,
-        DATE_FORMAT(STR_TO_DATE(CONCAT(month, '-01'), '%Y-%m-%d'), '%M %Y') AS month_label,
+        EXTRACT(MONTH FROM TO_DATE(month || '-01', 'YYYY-MM-DD')) AS month,
+        TO_CHAR(TO_DATE(month || '-01', 'YYYY-MM-DD'), 'Month YYYY') AS month_label,
         day,
         form6_count,
         form8_count,
         total
       FROM ${table}
-      WHERE month LIKE ?
+      WHERE month LIKE $1
       ORDER BY month_raw, constituency, day
     `;
 
-    const [rows] = await pool.query(sql, [yearLike]);
-    console.log(rows);
+    const { rows } = await pool.query(sql, [yearLike]);
     return res.json(rows);
   } catch (err) {
     console.error("❌ Error fetching reports:", err);

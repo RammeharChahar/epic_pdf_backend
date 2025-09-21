@@ -9,7 +9,7 @@ const USER_CONSTITUENCY_MAP = {
   "julana": 34,
   "safidon": 35,
   "jind": 36,
-  "uchana kalan": 37,
+  "uchana": 37,
   "narwana": 38
 };
 
